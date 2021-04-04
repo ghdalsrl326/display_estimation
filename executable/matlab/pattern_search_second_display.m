@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-raw_data = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\raw_data_[645.002, 454.979, -34.962]4.csv",'ReadVariableNames',true,'HeaderLines',0);
+raw_data = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\raw_data_[-666.002, 365.976, 115.018].csv",'ReadVariableNames',true,'HeaderLines',0);
 raw_data = raw_data(raw_data.Success==1,:);
 raw_data_true = raw_data(6:end,:); % calibration point 제외한 데이터 추출
 
@@ -25,22 +25,28 @@ raw_data_true_second = raw_data_true(1:2:end,:); %second display 데이터만 �
 fun  = @(x)Objective_function_mle(x,raw_data,raw_data_true,sphere_center);
 
 %탐색 영역 축소
-if mean(raw_data_true_first.pose_Ry) < mean(raw_data_true_second.pose_Ry) % 오른쪽으로 고개를 돌릴 때 
-    xmin = [pi/2,-pi/2,550];
-    xmax = [pi,0,1500];
-    x0 = xmin+rand*(xmax-xmin);
-    lb = [pi/2,-pi/2,550];
-    ub = [pi,0,1500];
-end
+% if mean(raw_data_true_first.pose_Ry) < mean(raw_data_true_second.pose_Ry) % 오른쪽으로 고개를 돌릴 때 
+%     xmin = [pi/2,-pi/2,550];
+%     xmax = [pi,0,2500];
+%     x0 = xmin+rand*(xmax-xmin);
+%     lb = [pi/2,-pi/2,550];
+%     ub = [pi,0,1500];
+% end
+% 
+% if mean(raw_data_true_first.pose_Ry) > mean(raw_data_true_second.pose_Ry) % 왼쪽으로 고개를 돌릴 때 
+%     xmin = [0,-pi/2,550];
+%     xmax = [pi/2,0,2500];
+%     x0 = xmin+rand*(xmax-xmin);
+%     lb = [0,-pi/2,550];
+%     ub = [pi/2,0,1500];
+% end
 
-if mean(raw_data_true_first.pose_Ry) > mean(raw_data_true_second.pose_Ry) % 왼쪽으로 고개를 돌릴 때 
-    xmin = [0,-pi/2,550];
-    xmax = [pi/2,0,2500];
-    x0 = xmin+rand*(xmax-xmin);
-    lb = [0,-pi/2,550];
-    ub = [pi/2,0,1500];
-end
-    
+xmin = [-pi,-pi/2,550];
+xmax = [0,0,2000];
+x0 = xmin+rand*(xmax-xmin);
+lb = [-pi,-pi/2,550];
+ub = [0,0,2000];
+
 A = [];
 b = [];
 Aeq = [];
