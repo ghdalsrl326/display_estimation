@@ -56,7 +56,7 @@ N = double(N);
 
     h = surf(X,Y,Z);
     alpha(h,0.8)
-    set(h,'EdgeColor',[.6 .6 .6],'FaceColor',[.9 .9 .9]);
+    set(h,'EdgeColor','None','FaceColor',[1 .5 .5]);
 
 %    colormap(gray);
 %    caxis([low-6, high]);

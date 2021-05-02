@@ -15,8 +15,8 @@ int current_time=0;
 int target_size = 0;
 int[] target_size_list={16, 24, 32, 40, 48, 64}; //Target Size
 
-int[] target_x_init = {0, 1920, 0, 1920, 960};
-int[] target_y_init = {0, 0, 1080, 1080, 540};
+int[] target_x_init = {32, 1888, 32, 1888, 960};
+int[] target_y_init = {32, 32, 1048, 1048, 540};
 
 int trial=0;
 int trials=105;

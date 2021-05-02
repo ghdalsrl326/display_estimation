@@ -35,4 +35,7 @@ F3T = subs(subs(f3,V,VV),U,UT);
 ezsurf(F1T+0*UT+0*VT,F2T+0*UT+0*VT,F3T+0*UT+0*VT,[a,b,0,1])
 p = findobj(gca,'type','surface'); p = p(1);
 set(p,'MeshStyle','column');
+colormap summer
+shading interp
+
 title('')

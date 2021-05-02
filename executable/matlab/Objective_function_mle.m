@@ -1,13 +1,16 @@
 function Cost = Objective_function_mle(x, raw_data, raw_data_true, sphere_center)
 
-%sphere_center에서 second_display_postion을 잇는 벡터를 구좌표계로 표현
-azimuth = x(1); elevation = x(2); r = x(3);
+xx = x(1); yy = x(2); zz = x(3);
+ele_coef = x(4);
 
-[xx, yy, zz] = sph2cart(azimuth,elevation,r);
-second_display_position = [-(xx + sphere_center(1)), -(yy + sphere_center(2) + 365/2 + 20), zz + sphere_center(3)];
-second_display_position(1) = -second_display_position(1); 
-second_display_position(2) = -second_display_position(2); 
-second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계로 변환 (unit: mm)
+% second_display_position = [-(xx + sphere_center(1)), -(yy + sphere_center(2) + 365/2 + 20), zz + sphere_center(3)];
+% second_display_position(1) = -second_display_position(1); 
+% second_display_position(2) = -second_display_position(2); 
+% second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계로 변환 (unit: mm)
+
+second_display_position = [xx, yy, zz];
+[azimuth,elevation,r] = cart2sph(second_display_position(1)-sphere_center(1),second_display_position(2)-sphere_center(2),second_display_position(3)-sphere_center(3));
+
 
 %% Second display 접평면 생성
 % [N, R0] = tangent_plane(sphere_center, norm(second_display_position'-sphere_center), elevation, azimuth);
@@ -34,9 +37,12 @@ rotm_plane_coord = [new_x_axis_vect', new_y_axis_vect', new_z_axis_vect']; %cam 
 htrans_plane_coord = [rotm_plane_coord, second_display_position'; 0, 0, 0, 1]; %cam coord -> second display coord 동차변환행렬
 
 %% pixel coordinate -> Second display coordinate system
-raw_data_true_first = raw_data_true(2:2:end,:); %first display 데이터만 추출
-raw_data_true_second = raw_data_true(1:2:end,:); %second display 데이터만 추출
-
+first_idx = find(raw_data_true{:,4}<=1920);
+second_idx = find(raw_data_true{:,4}>1920);
+        
+raw_data_true_first = raw_data_true(first_idx,:); %first display 데이터만 추출
+raw_data_true_second = raw_data_true(second_idx,:); %second display 데이터만 추출
+        
 p2mm_x = 615/1920; %display width/pixels width in processing
 p2mm_y = 365/1080; %display height/pixels height in processing
 
@@ -74,18 +80,18 @@ end
 head_origin = transpose(reshape(head_origin,4,100));
 head_direction = transpose(reshape(head_direction,4,100)); 
 
-head_origin_first = head_origin(2:2:end,:);
-head_origin_second = head_origin(1:2:end,:);
-head_direction_first = head_direction(2:2:end,:);
-head_direction_second = head_direction(1:2:end,:);
+head_origin_first = head_origin(first_idx,:);
+head_origin_second = head_origin(second_idx,:);
+head_direction_first = head_direction(first_idx,:);
+head_direction_second = head_direction(second_idx,:);
 
 %% Head calibration
 % head_direction_second를 head_origin_second를 원점으로 하는 구좌표계로 변환
 [az_head_vect_calib,el_head_vect_calib,r_head_vect_calib] = cart2sph(head_direction_second(:,1) - head_origin_second(:,1), head_direction_second(:,2) - head_origin_second(:,2), head_direction_second(:,3) - head_origin_second(:,3));
 
 % 구좌표계에서 elevation*2 보정
-az_head_vect_calib = az_head_vect_calib;
-el_head_vect_calib = (el_head_vect_calib + deg2rad(90))*2 - deg2rad(90);
+az_head_vect_calib = (az_head_vect_calib + deg2rad(180))*1 - deg2rad(180);
+el_head_vect_calib = (el_head_vect_calib + deg2rad(90))*ele_coef - deg2rad(90);
 
 % 다시 직교좌표계로 변환 후 plot
 [head_direction_second_calib_x, head_direction_second_calib_y, head_direction_second_calib_z] = sph2cart(az_head_vect_calib, el_head_vect_calib, r_head_vect_calib);
@@ -103,9 +109,13 @@ head_second_intersection_calib = [];
 
 for i = 1:length(head_direction_first)
     head_first_intersection = vertcat(head_first_intersection, line_plane_intersection(head_origin_first(i,1:3), head_direction_first(i,1:3), plane_coef_first));
+end
+
+for i = 1:length(head_direction_second)
     head_second_intersection = vertcat(head_second_intersection, line_plane_intersection(head_origin_second(i,1:3), head_direction_second(i,1:3), plane_coef_second));
     head_second_intersection_calib = vertcat(head_second_intersection_calib, line_plane_intersection(head_origin_second(i,1:3), head_direction_second_calib(i,1:3), plane_coef_second));
 end
+
 
 d2_target_mm_d2 = [];
 head_second_intersection_mm_d2 = []; % head position in display 2 
@@ -125,6 +135,7 @@ Sigma_head = cov(error_head_second_x, error_head_second_y);
 
 head_likelihood = mvnpdf([head_second_calib_intersection_mm_d2(:,1), head_second_calib_intersection_mm_d2(:,2)], [d2_target_mm_d2(:,1), d2_target_mm_d2(:,2)], [Sigma_head(1,1), 0; 0, Sigma_head(1,1)]);
 head_log_likelihood = log(head_likelihood);
+
 
 Cost = -sum(head_log_likelihood);
 
