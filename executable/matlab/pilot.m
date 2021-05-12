@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-raw_data = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test\1\data_robot_2.csv",'ReadVariableNames',true,'HeaderLines',0);
+raw_data = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case1\1\data_robot_2.csv",'ReadVariableNames',true,'HeaderLines',0);
 raw_data = raw_data(raw_data.Success==1,:);
 raw_data_true = raw_data(6:end,:);
 
@@ -16,22 +16,22 @@ RD_4 = raw_data(4,:);
 
 sphere_center = [(head_origin_LT(1) + head_origin_RT(1) + head_origin_LD(1) + head_origin_RD(1))/4, (head_origin_LT(2) + head_origin_RT(2) + head_origin_LD(2) + head_origin_RD(2))/4, (head_origin_LT(3) + head_origin_RT(3) + head_origin_LD(3) + head_origin_RD(3))/4 ]';
 
-second_display_position = [-289.004, 453.985, 96.012]; % first display 좌표계 기준 second display의 중심 위치(주의: fisrt display와 달리 원점이 중심임)
-second_display_position(1) = -second_display_position(1); 
-second_display_position(2) = -second_display_position(2); 
-second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계 기준으로 변환
-
-[azimuth,elevation,r] = cart2sph(second_display_position(1)-sphere_center(1),second_display_position(2)-sphere_center(2),second_display_position(3)-sphere_center(3));
-
-% azimuth = -1.0968; %ref: -2.4513
-% elevation = -0.8998; %ref: -0.6076
-% r = 739.3667; %ref:992.8595
-% 
-% [xx, yy, zz] = sph2cart(azimuth,elevation,r);
-% second_display_position = [-(xx + sphere_center(1)), -(yy + sphere_center(2) + 365/2 + 20), zz + sphere_center(3)];
+% second_display_position = [-289.004, 453.985, 96.012]; % first display 좌표계 기준 second display의 중심 위치(주의: fisrt display와 달리 원점이 중심임)
 % second_display_position(1) = -second_display_position(1); 
 % second_display_position(2) = -second_display_position(2); 
-% second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계로 변환
+% second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계 기준으로 변환
+% 
+% [azimuth,elevation,r] = cart2sph(second_display_position(1)-sphere_center(1),second_display_position(2)-sphere_center(2),second_display_position(3)-sphere_center(3));
+
+azimuth = -1.0968; %ref: -2.4513
+elevation = -0.8998; %ref: -0.6076
+r = 739.3667; %ref:992.8595
+
+[xx, yy, zz] = sph2cart(azimuth,elevation,r);
+second_display_position = [-(xx + sphere_center(1)), -(yy + sphere_center(2) + 365/2 + 20), zz + sphere_center(3)];
+second_display_position(1) = -second_display_position(1); 
+second_display_position(2) = -second_display_position(2); 
+second_display_position(2) = second_display_position(2) - 365/2 - 20; % camera 좌표계로 변환
 
 %% Second display 접평면 생성
 [N, R0] = tangent_plane(sphere_center, norm(second_display_position'-sphere_center), elevation, azimuth);

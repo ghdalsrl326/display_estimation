@@ -50,8 +50,8 @@ d1_target_x = (960 - raw_data_true_first.target_x)*p2mm_x; %processing coordinat
 d1_target_y = (raw_data_true_first.target_y - 1080)*p2mm_y - 20; %processing coordinate -> cam coord system (unit: mm)
 d1_target = [d1_target_x, d1_target_y, zeros(length(d1_target_x),1)]; % first display target의 3차원 위치 (Cam 좌표계)
 
-d2_target_x = (2880 - raw_data_true_second.target_x)*p2mm_x; %processing coordinate -> cam coord system (unit: mm)
-d2_target_y = (raw_data_true_second.target_y - 540)*p2mm_y;%processing coordinate -> cam coord system (unit: mm)
+d2_target_x = (2880 - raw_data_true_second.mouseX)*p2mm_x; %processing coordinate -> cam coord system (unit: mm)
+d2_target_y = (raw_data_true_second.mouseY - 540)*p2mm_y;%processing coordinate -> cam coord system (unit: mm)
 
 d2_target = []; % second display target의 3차원 위치 (Cam 좌표계)
 for i = 1:length(d2_target_x)
@@ -135,7 +135,6 @@ Sigma_head = cov(error_head_second_x, error_head_second_y);
 
 head_likelihood = mvnpdf([head_second_calib_intersection_mm_d2(:,1), head_second_calib_intersection_mm_d2(:,2)], [d2_target_mm_d2(:,1), d2_target_mm_d2(:,2)], [Sigma_head(1,1), 0; 0, Sigma_head(1,1)]);
 head_log_likelihood = log(head_likelihood);
-
 
 Cost = -sum(head_log_likelihood);
 

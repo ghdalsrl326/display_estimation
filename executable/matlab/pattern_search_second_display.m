@@ -1,18 +1,19 @@
 clear; clc; close all;
 
-ref = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test\ref_coord");
+ref = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case3\ref_coord");
 sub_file = ["data_robot_1.csv","data_robot_2.csv","data_robot_3.csv","data_robot_4.csv","data_robot_5.csv"];
-path = "C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test\";
-ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\","11\","12\","13\","14\","15\","16\","17\","18\","19\","20\"];
+path = "C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case3\";
+ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 
-
-for s = 11:11
-    for n = 1:1
+tic
+for s = 10:10
+    for n = 2:2
         ref_new = ref(s*5 - (5-n),:);
         
         raw_data = readtable(strcat(path,ss(s),sub_file(n)),'ReadVariableNames',true,'HeaderLines',0);
-        raw_data = raw_data(raw_data.Success==1,:);
+        raw_data = raw_data(raw_data.click==1,:);
         raw_data_true = raw_data(6:end,:); % calibration point 제외한 데이터 추출
+        raw_data_true = raw_data_true(1:100,:);
         
         LT_1 = raw_data(1,:);
         RT_2 = raw_data(2,:);
@@ -39,7 +40,7 @@ for s = 11:11
         
         if mean(raw_data_true_second.pose_Ry) > 0 % Right
             xmin = [-1500,-1500,-600,1];
-            xmax = [0,-365/2,200,2];
+            xmax = [0,-365/2,200,3];
             x0 = xmin+rand*(xmax-xmin);
             lb = [-1500,-1500,-600,1];
             ub = [0,-365/2,200,3];
@@ -48,7 +49,7 @@ for s = 11:11
             b = [dd];
         else % Left
             xmin = [0,-1500,-600,1];
-            xmax = [1500,-365/2,200,2];
+            xmax = [1500,-365/2,200,3];
             x0 = xmin+rand*(xmax-xmin);
             lb = [0,-1500,-600,1];
             ub = [1500,-365/2,200,3];
@@ -61,9 +62,11 @@ for s = 11:11
         beq = [];
         
         options = optimoptions(@patternsearch,'Display','iter','PollMethod', 'MADSPositiveBasis2N','MeshTolerance',1e-8,'UseCompletePoll', true,'UseCompleteSearch', true,'MeshExpansionFactor', 1.05,'MeshContractionFactor', 0.95,'StepTolerance',1e-6, 'MaxIterations',200);
-        
         x = patternsearch(fun,x0,A,b,Aeq,beq,lb,ub,options);
-        
+
+%         nvars = 4;
+%         options = optimoptions(@particleswarm, 'UseVectorized', true);
+%         x = particleswarm(fun, 4, lb,ub);
         
         
         %% Estimation 결과 시각화
@@ -118,8 +121,8 @@ for s = 11:11
         d1_target_y = (raw_data_true_first.target_y - 1080)*p2mm_y - 20; %processing coordinate -> cam coord system (unit: mm)
         d1_target = [d1_target_x, d1_target_y, zeros(length(d1_target_x),1)]; % first display target의 3차원 위치 (Cam 좌표계)
         
-        d2_target_x = (2880 - raw_data_true_second.target_x)*p2mm_x; %processing coordinate -> cam coord system (unit: mm)
-        d2_target_y = (raw_data_true_second.target_y - 540)*p2mm_y;%processing coordinate -> cam coord system (unit: mm)
+        d2_target_x = (2880 - raw_data_true_second.mouseX)*p2mm_x; %processing coordinate -> cam coord system (unit: mm)
+        d2_target_y = (raw_data_true_second.mouseY - 540)*p2mm_y;%processing coordinate -> cam coord system (unit: mm)
         
         d2_target = []; % second display target의 3차원 위치 (Cam 좌표계)
         for i = 1:length(d2_target_x)
@@ -272,3 +275,4 @@ for s = 11:11
         csvwrite_with_headers(title,A,headers);
     end
 end
+toc
