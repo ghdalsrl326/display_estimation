@@ -2,14 +2,14 @@ clear; clc; close all;
 
 
 
-ref = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case2_gs\ref_coord");
+ref = readtable("C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case3_gs\ref_coord");
 sub_file = ["data_robot_1.csv","data_robot_2.csv","data_robot_3.csv","data_robot_4.csv","data_robot_5.csv"];
-path = "C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case2_gs\";
+path = "C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_display\user_test_case3_gs\";
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 
 
-for s = 1:1
-    for n = 1:5
+for s = 8:8
+    for n = 4:4
         ref_new = ref(s*5 - (5-n),:);
         ref_display_position = table2array(ref_new(:,:)); % first display 좌표계 기준 second display의 중심 위치(주의: fisrt display와 달리 원점이 중심임)
         ref_display_position(1) = -ref_display_position(1);
@@ -23,10 +23,10 @@ for s = 1:1
         last_calib_idx = find(raw_data.Success==1 & raw_data.target_x==960 & raw_data.target_y==540);
         raw_data_true = raw_data(last_calib_idx+1:end,:); % calibration point 제외한 데이터 추출
         
-        trial_fileID = fopen(strcat(path,ss(s),sub_file(n),"_trials.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
+        trial_fileID = fopen(strcat(path,ss(s),sub_file(n),"_trials_add.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
         fprintf(trial_fileID,"trials,Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,Cost\n");
         %% trial 개수 조정
-        for t = 4:2:100
+        for t = 76:2:100
         
         raw_data_true_trial = raw_data_true(1:t,:);
         
@@ -111,7 +111,7 @@ for s = 1:1
             else
                 feasible = 0;
             end            
-            fprintf('Q=%f, W=%f, E=%f, R=%f \n',Q,W,E,R)
+%             fprintf('Q=%f, W=%f, E=%f, R=%f \n',Q,W,E,R)
             P1_cand = ref_display_position - sphere_center';
             P2_cand = second_display_position - sphere_center';
             
