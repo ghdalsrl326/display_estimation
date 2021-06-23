@@ -1,14 +1,13 @@
 function [head_origin, head_direction, eye_origin, gaze_vector] = calibration_import_module(raw_data)
 
-head_pose = [raw_data.pose_Tx, raw_data.pose_Ty, raw_data.pose_Tz]; % cam coordinate system
+head_pose = [raw_data.pose_Tx, raw_data.pose_Ty, raw_data.pose_Tz]; % webcam 좌표계 기준 머리의 3차원 위치
 head_eul = [raw_data.pose_Rx, raw_data.pose_Ry, raw_data.pose_Rz]; % Left-handed positive
 
-R = eul2rotm(head_eul,"XYZ"); % world coordinate system
-% R = eul2rotm(head_eul,"ZYX"); % world coordinate system
-T = head_pose'; % unit: mm
-htrans = [R, T; 0, 0, 0, 1]; % head to cam coord
+R = eul2rotm(head_eul,"XYZ"); % rotation matrix
+T = head_pose'; % translation matrix
+htrans = [R, T; 0, 0, 0, 1]; % homogeneous transformation matrix for head to cam coord transformation
 
-% cam 좌표계에서 line sphere intersection 계산
+% webcam 좌표계에서 line sphere intersection 계산
 head_origin = (htrans)*[0,0,0,1]'; % H matrix * head 좌표계 기준 좌표 = cam 좌표계 기준 좌표
 head_direction = (htrans)*[0,0,-1000,1]'; % cam coordinate
 

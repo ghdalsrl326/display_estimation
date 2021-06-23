@@ -7,6 +7,8 @@ path = ["C:\MinkiHong\processing-3.5.4-windows64\processing_storage\multi_displa
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 
 raw_answer = [];
+millis = [];
+error = [];
 for p = 1:3
     for s = 1:10
         for n = 1:5
@@ -20,7 +22,42 @@ for p = 1:3
             raw_data_true = raw_data(last_calib_idx+1:end,:); % calibration point 제외한 데이터 추출
             
             raw_answer = vertcat(raw_answer, raw_data_true);
+            millis_temp = raw_data_true.millis;
+            millis_temp(end:500,1) = 0;
+            millis = horzcat(millis,millis_temp);
+            
+            error_rate = raw_data_true.Success;
+            error_rate(end:500,1) = 0;
+            error = horzcat(error,error_rate);
 
         end
     end
 end
+
+diff_millis = diff(millis,1,1);
+mean_diff_millis = [];
+for i = 1:98
+    mean_diff_millis = vertcat(mean_diff_millis, mean(diff_millis(i,:)));
+end
+
+error_rate = [];
+for i = 1:99
+    error_rate = vertcat(error_rate, 100 - sum(error(i,:))*100/size(error,2));
+end
+
+%% Plot Learning Curve
+plot(mean_diff_millis,'k','LineWidth',3);
+title('Learning Curve', 'FontSize', 24);
+xlabel('Trials', 'FontSize', 16);
+ylabel('Trial Completion Time(ms)', 'FontSize', 16);
+ylim([1000 2500]);
+grid on
+
+%% Plot Error Rate Curve
+% figure;
+% plot(error_rate,'k','LineWidth',3);
+% title('Error Rate', 'FontSize', 24);
+% xlabel('Trials', 'FontSize', 16);
+% ylabel('Error Rate(%)', 'FontSize', 16);
+% ylim([0, 50]);
+% grid on

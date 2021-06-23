@@ -1,0 +1,2 @@
+trials,Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,Cost
+40,341.179444,18.599625,641.999000,-657.444000,65.077000,685.714286,-447.142857,-200.000000,1.608696,-226.388661
