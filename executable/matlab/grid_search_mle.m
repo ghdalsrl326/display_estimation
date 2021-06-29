@@ -1,6 +1,6 @@
 function [Cost, second_display_position] = grid_search_mle(x, raw_data_true, sphere_center)
 
-xx = x(1); yy = x(2); zz = x(3); ele_coef = x(4); % 초기 파라미터 설정
+xx = x(1); yy = x(2); zz = x(3); ele_coef = x(4); azi_coef = x(5);% 초기 파라미터 설정
 
 second_display_position = [xx, yy, zz]; % 임의 부모니터 위치
 [azimuth,elevation,r] = cart2sph(second_display_position(1)-sphere_center(1),second_display_position(2)-sphere_center(2),second_display_position(3)-sphere_center(3)); % 극좌표로 변경
@@ -81,8 +81,8 @@ head_direction_second = head_direction(second_idx,:);
 % head_direction_second를 head_origin_second를 원점으로 하는 구좌표계로 변환
 [az_head_vect_calib,el_head_vect_calib,r_head_vect_calib] = cart2sph(head_direction_second(:,1) - head_origin_second(:,1), head_direction_second(:,2) - head_origin_second(:,2), head_direction_second(:,3) - head_origin_second(:,3));
 
-% 구좌표계에서 elevation*2 보정
-az_head_vect_calib = (az_head_vect_calib + deg2rad(180))*1 - deg2rad(180);
+% 구좌표계에서 azimuth, elevation angle 보정
+az_head_vect_calib = (az_head_vect_calib + deg2rad(180))*azi_coef - deg2rad(180);
 el_head_vect_calib = (el_head_vect_calib + deg2rad(90))*ele_coef - deg2rad(90);
 
 % 다시 직교좌표계로 변환 후 plot
