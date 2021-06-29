@@ -1,0 +1,2 @@
+Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef
+422.19,19.305,662.99,-337.49,121.03,685.71,-358.93,-300,1.8182,0.85714
