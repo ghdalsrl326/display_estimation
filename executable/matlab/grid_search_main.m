@@ -28,7 +28,7 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         last_calib_idx = find(raw_data.Success==1 & raw_data.target_x==960 & raw_data.target_y==540); %  마지막 calibration point 식별
         raw_data_true = raw_data(last_calib_idx+1:end,:); % calibration point 제외한 데이터 추출 -> 얘네만 추정에 활용
         
-        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_AE40_2.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
+        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_new_calib.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
         fprintf(trial_fileID,"trials,Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef,Cost\n");
         %% 위치 추정에 사용할 클릭 trial 개수 조정
         for t = 40:2:40 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 2회 필요하므로 최소값은 4, 최대값은 100
@@ -58,50 +58,47 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
        %% Grid Search Optimization
         
         % grid space setting (m1: 가능도 계산할 부모니터 x 위치 간격, m2: y 위치 간격, m3: z 위치 간격, m4,m5: 머리-시선 보정계수 간격)
-        m1 = 8; m2 = 8; m3 = 7; m4 = 12; m5 = 12;
+        m1 = 9; m2 = 9; m3 = 7; m4 = 11;
 
         % construct grid
         if mean(raw_data_true_second.pose_Ry) > 0 % 머리를 평균적으로 우측으로 회전한 경우
             G1 = linspace(-800,0,m1); % 탐색할 그리드 포인트 x
-            G5 = linspace(-4,-1,m5); % 탐색할 그리드 포인트의 머리-시선 보정계수(azimuth angle coef)
         else % 머리를 평균적으로 좌측으로 회전한 경우
             G1 = linspace(0,800,m1); % 탐색할 그리드 포인트 x
-            G5 = linspace(1,4,m5); % 탐색할 그리드 포인트의 머리-시선 보정계수(azimuth angle coef)
         end        
         G2 = linspace(-800,-365/2,m2); % 탐색할 그리드 포인트 y
         G3 = linspace(-300,300,m3); % 탐색할 그리드 포인트 z
-        G4 = linspace(1,4,m4); % 탐색할 그리드 포인트의 머리-시선 보정계수(elevation angle coef)
+        G4 = linspace(1,4,m4); % 탐색할 그리드 포인트의 머리-시선 보정계수
         
         
         % initial values
-        x1_max = -1e+10; x2_max = -1e+10; x3_max = -1e+10; x4_max = -1e+10; x5_max = -1e+10;           
+        x1_max = -1e+10; x2_max = -1e+10; x3_max = -1e+10; x4_max = -1e+10;         
         Cost_max = -1e+10;
         second_display_position_max = [0,0,0];
         
         A_cand = []; % Answer candidate 초기화: 거리오차, 각도오차, 레퍼런스 부모니터 위치, 추정 부모니터 위치, 머리 시선 보정계수, 가능도, feasible check
                
         p_Cost_max = zeros(m1,1); % p_: 병렬 연산용(parfor) 파라미터 컨테이너. 모든 그리드 포인트에서 계산 후 최대값 추출
-        p_x1_max = zeros(m1,1); p_x2_max = zeros(m1,1); p_x3_max = zeros(m1,1); p_x4_max = zeros(m1,1); p_x5_max = zeros(m1,1);       
+        p_x1_max = zeros(m1,1); p_x2_max = zeros(m1,1); p_x3_max = zeros(m1,1); p_x4_max = zeros(m1,1);
 
         tic
         parfor Q = 1:m1
-            x1_max = -1e+10; x2_max = -1e+10; x3_max = -1e+10; x4_max = -1e+10; x5_max = -1e+10;        
+            x1_max = -1e+10; x2_max = -1e+10; x3_max = -1e+10; x4_max = -1e+10;   
             Cost_max = -1e+10;
             second_display_position_max = [0,0,0];
             
         for W = 1:m2
         for E = 1:m3
         for R = 1:m4
-        for T = 1:m5
-            x = [G1(Q), G2(W), G3(E), G4(R), G5(T)];
+            x = [G1(Q), G2(W), G3(E), G4(R)];
             [Cost, second_display_position] = grid_search_mle(x, raw_data_true_trial, sphere_center); % grid_search_mle: 로그 가능도 합 계산하는 함수
             
             [aa_R,bb_R,cc_R,dd_R] = plane_3p(sphere_center', [-615,-365/2,0], [-615/2, -365,0]); % FoV 제약조건 평면 생성
-            A_R = [-aa_R,-bb_R,-cc_R,0,0];
+            A_R = [-aa_R,-bb_R,-cc_R,0];
             b_R = [dd_R];
             
             [aa_L,bb_L,cc_L,dd_L] = plane_3p(sphere_center', [615/2, -365,0], [615,-365/2,0]); % FoV 제약조건 평면 생성
-            A_L = [-aa_L,-bb_L,-cc_L,0,0];
+            A_L = [-aa_L,-bb_L,-cc_L,0];
             b_L = [dd_L];
             
             if (A_L*x'<=b_L) | (A_R*x'<=b_R) % 탐색한 그리드 포인트가 FoV 제약 조건을 만족하는지
@@ -113,7 +110,6 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
                         x2_max = G2(W);
                         x3_max = G3(E);
                         x4_max = G4(R);
-                        x5_max = G5(T);
                         second_display_position_max = second_display_position;
                     end
                 else
@@ -125,15 +121,14 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
             P1_cand = ref_display_position - sphere_center'; % 각도 오차 계산용 벡터(머리 위치 -> 레퍼런스 부모니터 중심점)
             P2_cand = second_display_position - sphere_center'; %  각도 오차 계산용 벡터(머리 위치 -> 추정 부모니터 중심점)
             
-            A_cand = vertcat(A_cand,[norm(ref_display_position - second_display_position), atan2d(norm(cross(P1_cand,P2_cand)),dot(P1_cand,P2_cand)), ref_display_position(1), ref_display_position(2), ref_display_position(3), second_display_position(1), second_display_position(2), second_display_position(3), x(4), x(5), Cost, feasible]);
+            A_cand = vertcat(A_cand,[norm(ref_display_position - second_display_position), atan2d(norm(cross(P1_cand,P2_cand)),dot(P1_cand,P2_cand)), ref_display_position(1), ref_display_position(2), ref_display_position(3), second_display_position(1), second_display_position(2), second_display_position(3), x(4), Cost, feasible]);
             % A_cand = Answer candidate: 거리오차, 각도오차, 레퍼런스 부모니터 위치, 추정 부모니터 위치, 머리 시선 보정계수, 가능도, feasible check
 
         end
         end
-        end
         end        
             p_Cost_max(Q) = Cost_max; % 병렬 연산된 최대값 그리드 포인트들 중의 최대값 그리드 포인트 추출
-            p_x1_max(Q) = x1_max; p_x2_max(Q) = x2_max; p_x3_max(Q) = x3_max; p_x4_max(Q) = x4_max; p_x5_max(Q) = x5_max;        
+            p_x1_max(Q) = x1_max; p_x2_max(Q) = x2_max; p_x3_max(Q) = x3_max; p_x4_max(Q) = x4_max;        
         end
         
         [M, M_Idx] = max(p_Cost_max); % 최대값 및 최대값의 인덱스
@@ -141,21 +136,21 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         toc
         %% 결과 저장
         %_cand = 모든 그리드 포인트에 대해 계산한 결과
-        headers_cand = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','elevation_coef','azimuth_coef','Cost','feasible'};
-        title_cand = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_cand_AE40_2'));
+        headers_cand = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef','Cost','feasible'};
+        title_cand = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_cand_new_calib'));
         csvwrite_with_headers(title_cand,A_cand,headers_cand);
 
         %_trial = 위치 추정에 사용할 클릭 trial 개수 조정해가며 추정한 최종 결과
         P1_trial = ref_display_position - sphere_center'; 
         P2_trial = max_second_display_position - sphere_center';
-        A_trial = [t,norm(ref_display_position - max_second_display_position), atan2d(norm(cross(P1_trial,P2_trial)),dot(P1_trial,P2_trial)), ref_display_position(1), ref_display_position(2), ref_display_position(3), max_second_display_position(1), max_second_display_position(2), max_second_display_position(3), p_x4_max(M_Idx), p_x5_max(M_Idx), M];
-        fprintf(trial_fileID,'%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n',A_trial);
+        A_trial = [t,norm(ref_display_position - max_second_display_position), atan2d(norm(cross(P1_trial,P2_trial)),dot(P1_trial,P2_trial)), ref_display_position(1), ref_display_position(2), ref_display_position(3), max_second_display_position(1), max_second_display_position(2), max_second_display_position(3), p_x4_max(M_Idx), M];
+        fprintf(trial_fileID,'%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n',A_trial);
         end
         
         fclose(trial_fileID);
 
        %% 추정 결과 시각화 (여기서부터는 grid_search_mle.m 파일과 동일)
-        xx = p_x1_max(M_Idx); yy = p_x2_max(M_Idx); zz = p_x3_max(M_Idx); ele_coef = p_x4_max(M_Idx); azi_coef = p_x5_max(M_Idx); % 초기 파라미터 설정
+        xx = p_x1_max(M_Idx); yy = p_x2_max(M_Idx); zz = p_x3_max(M_Idx); coef = p_x4_max(M_Idx); % 초기 파라미터 설정
         second_display_position = [xx, yy, zz]; % 임의 부모니터 위치 입력
         [azimuth,elevation,r] = cart2sph(second_display_position(1)-sphere_center(1),second_display_position(2)-sphere_center(2),second_display_position(3)-sphere_center(3)); % 극좌표로 변경
         
@@ -218,8 +213,8 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         head_origin = []; % 머리 방향벡터의 시작점
         head_direction = []; % 머리 방향벡터의 끝점
         for i = 1:length(T)
-            head_origin = cat(3, head_origin, htrans(:,:,i)*[0,0,0,1]');
-            head_direction = cat(3, head_direction, htrans(:,:,i)*[0,0,-1500,1]');
+            head_origin = cat(3, head_origin, htrans(:,:,i)*[0,0,0,1]'); % 머리 좌표계에서 0,0,0을 카메라가 원점인 좌표계로 표현
+            head_direction = cat(3, head_direction, htrans(:,:,i)*[0,0,-1500,1]'); % 머리 좌표계에서 0,0,-1500 을 카메라가 원점인 좌표계로 표현
         end
         
         head_origin = transpose(reshape(head_origin,4,size(T,2)));
@@ -231,21 +226,23 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         head_direction_first = head_direction(first_idx,:);
         head_direction_second = head_direction(second_idx,:);
         
-        %% Head-Gaze calibration
-        % head_direction_second를 head_origin_second를 원점으로 하는 구좌표계로 변환
-        [az_head_vect_calib,el_head_vect_calib,r_head_vect_calib] = cart2sph(head_direction_second(:,1) - head_origin_second(:,1), head_direction_second(:,2) - head_origin_second(:,2), head_direction_second(:,3) - head_origin_second(:,3));
+       %% Head-Gaze calibration
         
-        % 구좌표계에서 azimuth, elevation angle 보정
-        az_head_vect_calib = (az_head_vect_calib + deg2rad(180))*azi_coef - deg2rad(180);
-        el_head_vect_calib = (el_head_vect_calib + deg2rad(90))*ele_coef - deg2rad(90);
+        head_neutral = -head_origin_second(:,1:3); % 현재 머리 위치에서 웹캠 중앙을 바라보는 방향벡터
+        head_vect_second = head_direction_second(:,1:3) - head_origin_second(:,1:3); % 부모니터 클릭할 때 머리의 방향벡터
         
-        % 다시 직교좌표계로 변환 후 plot
-        [head_direction_second_calib_x, head_direction_second_calib_y, head_direction_second_calib_z] = sph2cart(az_head_vect_calib, el_head_vect_calib, r_head_vect_calib);
-        head_direction_second_calib_x = head_direction_second_calib_x + head_origin_second(:,1);
-        head_direction_second_calib_y = head_direction_second_calib_y + head_origin_second(:,2);
-        head_direction_second_calib_z = head_direction_second_calib_z + head_origin_second(:,3);
-        head_direction_second_calib = [head_direction_second_calib_x, head_direction_second_calib_y, head_direction_second_calib_z];
+        base_angle = [];
+        for i = 1:length(head_vect_second)
+            base_angle = vertcat(base_angle, atan2d(norm(cross(head_neutral(i,:),head_vect_second(i,:))), dot(head_neutral(i,:),head_vect_second(i,:))));
+        end
+        K = cross(head_neutral, head_vect_second); % K = distal point for rotation axis
         
+        head_direction_second_calib = [];
+        for i = 1:length(head_vect_second)
+            head_direction_second_calib = vertcat(head_direction_second_calib, rodrigues_rotn_formula(head_vect_second(i,:),head_pose_true(i,:),K(i,:),coef,base_angle(i,:)));
+        end
+        
+        head_direction_second_calib = head_direction_second_calib + head_origin_second(:,1:3);
         
         %% 웹캠 좌표계 기준 Ray(머리 방향벡터) - Tangent plane(주/부 모니터) 교점 계산
         
@@ -342,10 +339,10 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         fprintf('Distance Error(cm): %f \n',norm(ref_display_position - second_display_position))
         fprintf('Direction Error(deg): %f \n',atan2d(norm(cross(P1,P2)),dot(P1,P2)))
         
-        headers = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','elevation_coef','azimuth_coef'};
+        headers = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef'};
 
-        A = [norm(ref_display_position - second_display_position), atan2d(norm(cross(P1,P2)),dot(P1,P2)), ref_display_position(1), ref_display_position(2), ref_display_position(3), second_display_position(1), second_display_position(2), second_display_position(3), ele_coef, azi_coef];
-        title = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_result_AE40_2'));
+        A = [norm(ref_display_position - second_display_position), atan2d(norm(cross(P1,P2)),dot(P1,P2)), ref_display_position(1), ref_display_position(2), ref_display_position(3), second_display_position(1), second_display_position(2), second_display_position(3), coef];
+        title = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_result_new_calib'));
         csvwrite_with_headers(title,A,headers);
     end
 end
