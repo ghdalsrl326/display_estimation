@@ -1,9 +1,9 @@
 clear; clc; close all;
 
 %% 데이터 경로 (다른 instruction case로 변경할 경우, ref, path에서 user_test_case*_gs 숫자만 변경)
-ref = readtable('../../dataset/user_test_case3_gs/ref_coord');
+ref = readtable('../../dataset/user_test_case2_gs/ref_coord');
 % ref = 레퍼런스 부모니터 중심점 위치가 담긴 파일의 경로
-path = "user_test_case3_gs\";
+path = "user_test_case2_gs\";
 % path = 인스트럭션 케이스(user_test_case1_gs: 가능한 정확하게, user_test_case2_gs: 가능한 빠르게, user_test_case3_gs; 가능한 빠르고 정확하게)
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 % ss = 피험자 번호
@@ -33,28 +33,14 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         %% 위치 추정에 사용할 클릭 trial 개수 조정
         for t = 40:2:40 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 2회 필요하므로 최소값은 4, 최대값은 100
         
-       %% calibration process: 머리 벡터 ray가 시작되는 원점(sphere_center) 계산
-        LT_1 = raw_data_calib_points(1,:); %calibration point 1: 주모니터 좌측 상단을 클릭할 시점의 사용자 로그
-        RT_2 = raw_data_calib_points(2,:); %calibration point 2: 주모니터 우측 상단을 클릭할 시점의 사용자 로그
-        LD_3 = raw_data_calib_points(3,:); %calibration point 3: 주모니터 좌측 하단을 클릭할 시점의 사용자 로그
-        RD_4 = raw_data_calib_points(4,:); %calibration point 4: 주모니터 우측 하단을 클릭할 시점의 사용자 로그
-        
-        head_origin_LT = [LT_1.pose_Tx, LT_1.pose_Ty, LT_1.pose_Tz]; % 주모니터 좌측 상단을 클릭할 시점의 머리 위치
-        head_origin_RT = [RT_2.pose_Tx, RT_2.pose_Ty, RT_2.pose_Tz]; % 주모니터 우측 상단을 클릭할 시점의 머리 위치
-        head_origin_LD = [LD_3.pose_Tx, LD_3.pose_Ty, LD_3.pose_Tz]; % 주모니터 좌측 하단을 클릭할 시점의 머리 위치
-        head_origin_RD = [RD_4.pose_Tx, RD_4.pose_Ty, RD_4.pose_Tz]; % 주모니터 우측 하단을 클릭할 시점의 머리 위치
-        
-        % sphere_center = calibration point 머리 위치의 산술 평균
-        sphere_center = [(head_origin_LT(1) + head_origin_RT(1) + head_origin_LD(1) + head_origin_RD(1))/4, (head_origin_LT(2) + head_origin_RT(2) + head_origin_LD(2) + head_origin_RD(2))/4, (head_origin_LT(3) + head_origin_RT(3) + head_origin_LD(3) + head_origin_RD(3))/4 ]';
-        
-        %% calibration 제외한 데이터 추리기
+        %% 초기 5번 calibration 클릭 제외한 데이터 추리기
         raw_data_true_trial = raw_data_true(1:t,:); %raw_data_true_trial = 1~t개 클릭 데이터 (calibration point 제외)        
         first_idx = find(raw_data_true_trial{:,4}<=1920); % 타겟 위치를 기준으로 주모니터 데이터의 인덱스 선별(1920 = 주모니터 가로축 해상도)
         second_idx = find(raw_data_true_trial{:,4}>1920); % 타겟 위치를 기준으로 부모니터 데이터의 인덱스 선별
         
         raw_data_true_first = raw_data_true_trial(first_idx,:); % 주모니터 데이터만 추출
         raw_data_true_second = raw_data_true_trial(second_idx,:); % 부모니터 데이터만 추출
-        
+        sphere_center = [mean(raw_data_true_first.pose_Tx), mean(raw_data_true_first.pose_Ty), mean(raw_data_true_first.pose_Tz)]'; % 머리 벡터 ray가 시작되는 원점 계산
        %% Grid Search Optimization
         
         % grid space setting (m1: 가능도 계산할 부모니터 x 위치 간격, m2: y 위치 간격, m3: z 위치 간격, m4,m5: 머리-시선 보정계수 간격)

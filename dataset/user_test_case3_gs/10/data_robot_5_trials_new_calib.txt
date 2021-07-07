@@ -1,0 +1,2 @@
+trials,Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef,Cost
+40,363.705231,23.789308,-655.973000,-205.428000,-56.930000,-700.000000,-259.687500,300.000000,2.200000,-251.290175
