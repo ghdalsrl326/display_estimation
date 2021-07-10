@@ -1,9 +1,9 @@
 clear; clc; close all;
 
 %% 데이터 경로 (다른 instruction case로 변경할 경우, ref, path에서 user_test_case*_gs 숫자만 변경)
-ref = readtable('../../dataset/user_test_case2_gs/ref_coord');
+ref = readtable('../../dataset/user_test_case1_gs/ref_coord');
 % ref = 레퍼런스 부모니터 중심점 위치가 담긴 파일의 경로
-path = "user_test_case2_gs\";
+path = "user_test_case1_gs\";
 % path = 인스트럭션 케이스(user_test_case1_gs: 가능한 정확하게, user_test_case2_gs: 가능한 빠르게, user_test_case3_gs; 가능한 빠르고 정확하게)
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 % ss = 피험자 번호
@@ -23,13 +23,21 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         
         raw_data = readtable(strcat('..\..\dataset\',path,ss(s),sub_file(n)),'ReadVariableNames',true,'HeaderLines',0); % 피험자 데이터 로그 불러오기
         
+        %% Low-pass Filtering
+        raw_data.pose_Tx = lowpass(raw_data.pose_Tx,10,50,'ImpulseResponse','auto');
+        raw_data.pose_Ty = lowpass(raw_data.pose_Ty,10,50,'ImpulseResponse','auto');
+        raw_data.pose_Tz = lowpass(raw_data.pose_Tz,10,50,'ImpulseResponse','auto');
+        raw_data.pose_Rx = lowpass(raw_data.pose_Rx,10,50,'ImpulseResponse','auto');
+        raw_data.pose_Ry = lowpass(raw_data.pose_Ry,10,50,'ImpulseResponse','auto');
+        raw_data.pose_Rz = lowpass(raw_data.pose_Rz,10,50,'ImpulseResponse','auto');
+                
         raw_data = raw_data(raw_data.click==1,:); % 전체 기록 중 클릭한 시점의 데이터만 추출
         raw_data_calib_points = raw_data(raw_data.Success==1,:); % 105회 클릭 중 최초 5회 calibration point 식별. (calibration은 클릭 성공만 카운트, 나머지 100회는 성공/실패 모두 카운트)
         last_calib_idx = find(raw_data.Success==1 & raw_data.target_x==960 & raw_data.target_y==540); %  마지막 calibration point 식별
         raw_data_true = raw_data(last_calib_idx+1:end,:); % calibration point 제외한 데이터 추출 -> 얘네만 추정에 활용
         
-        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_new_calib.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
-        fprintf(trial_fileID,"trials,Distance_Error(cm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef,Cost\n");
+        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_lowpass.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
+        fprintf(trial_fileID,"trials,Distance_Error(mm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef,Cost\n");
         %% 위치 추정에 사용할 클릭 trial 개수 조정
         for t = 40:2:40 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 2회 필요하므로 최소값은 4, 최대값은 100
         
@@ -122,8 +130,8 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         toc
         %% 결과 저장
         %_cand = 모든 그리드 포인트에 대해 계산한 결과
-        headers_cand = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef','Cost','feasible'};
-        title_cand = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_cand_new_calib'));
+        headers_cand = {'Distance_Error(mm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef','Cost','feasible'};
+        title_cand = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_cand_lowpass'));
         csvwrite_with_headers(title_cand,A_cand,headers_cand);
 
         %_trial = 위치 추정에 사용할 클릭 trial 개수 조정해가며 추정한 최종 결과
@@ -322,13 +330,13 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
 
         P1 = ref_display_position - sphere_center';
         P2 = second_display_position - sphere_center';
-        fprintf('Distance Error(cm): %f \n',norm(ref_display_position - second_display_position))
+        fprintf('Distance Error(mm): %f \n',norm(ref_display_position - second_display_position))
         fprintf('Direction Error(deg): %f \n',atan2d(norm(cross(P1,P2)),dot(P1,P2)))
         
-        headers = {'Distance_Error(cm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef'};
+        headers = {'Distance_Error(mm)','Direction_Error(deg)','ref_display_position_x','ref_display_position_y','ref_display_position_z','second_display_position_x','second_display_position_y','second_display_position_z','coef'};
 
         A = [norm(ref_display_position - second_display_position), atan2d(norm(cross(P1,P2)),dot(P1,P2)), ref_display_position(1), ref_display_position(2), ref_display_position(3), second_display_position(1), second_display_position(2), second_display_position(3), coef];
-        title = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_result_new_calib'));
+        title = convertStringsToChars(strcat('..\..\dataset\',path,ss(s),sub_file(n),'_result_lowpass'));
         csvwrite_with_headers(title,A,headers);
     end
 end
