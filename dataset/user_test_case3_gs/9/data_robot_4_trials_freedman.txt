@@ -1,0 +1,2 @@
+trials,Distance_Error(mm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,Cost
+40,366.511747,13.098844,642.989000,-511.512000,-8.957000,400.000000,-259.687500,100.000000,-261.696915
