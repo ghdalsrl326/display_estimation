@@ -1,0 +1,261 @@
+import random
+tp_log('code started')
+
+T_base = posx(0, -470, 660, 0, 0, 0)
+R_base = posx(625, -470, 260, 0, 0, 0)
+L_base = posx(-625, -470, 260, 0, 0, 0)
+C_base = posx(0,-470,260, 0, 0, 0)
+
+# mk_display 에서 구한 세 점으로 모니터 좌표계를 만든다(원점 == 모니터 중심)
+pose_user = calc_coord(C_base, R_base, T_base, ref = DR_BASE, mod=0)
+
+f_disp_coord = set_user_cart_coord(pose_user, ref = DR_BASE)
+overwrite_user_cart_coord(f_disp_coord, pose_user, ref=DR_BASE)
+set_ref_coord(f_disp_coord)
+tp_log('initial position is '+ str(get_current_posx()))
+
+def xz_align_R():
+## xz 평면에서 tool coordinate x axis을  base coordinate x축과 나란히
+
+    z_value = 10
+    while abs(z_value)>0.2:
+        base_xz_vect = [10, 0]
+    
+        current_tool_pos = get_current_posx(DR_BASE)[0]
+        add_tool_pos = trans([0,0,0,0,0,0], [10,0,0,0,0,0], DR_TOOL)
+        current_tool2_pos = coord_transform(add_tool_pos, DR_TOOL, DR_BASE)
+    
+        temp = subtract_pose(current_tool2_pos, current_tool_pos)
+        tool_xz_vect = [temp[0], temp[2]] # base coord
+        tp_log(str(tool_xz_vect))
+    
+        z_value = temp[2]
+        if z_value > 0:    
+            movej([0,0,0,0,0,-1], v=10, a=10, mod=DR_MV_MOD_REL)
+        if z_value < 0:
+            movej([0,0,0,0,0,1], v=10, a=10, mod=DR_MV_MOD_REL)
+            
+def xz_align_L():
+## xz 평면에서 tool coordinate x axis을  base coordinate x축과 나란히
+
+    z_value = 10
+    while abs(z_value)>0.2:
+        base_xz_vect = [10, 0]
+    
+        current_tool_pos = get_current_posx(DR_BASE)[0]
+        add_tool_pos = trans([0,0,0,0,0,0], [10,0,0,0,0,0], DR_TOOL)
+        current_tool2_pos = coord_transform(add_tool_pos, DR_TOOL, DR_BASE)
+    
+        temp = subtract_pose(current_tool2_pos, current_tool_pos)
+        tool_xz_vect = [temp[0], temp[2]] # base coord
+        tp_log(str(tool_xz_vect))
+    
+        z_value = temp[2]
+        if z_value > 0:    
+            movej([0,0,0,0,0,1], v=10, a=10, mod=DR_MV_MOD_REL)
+        if z_value < 0:
+            movej([0,0,0,0,0,-1], v=10, a=10, mod=DR_MV_MOD_REL)
+
+def get_center_from_fixed_display():
+    pose_in = get_current_posx(f_disp_coord)
+    tp_log('Final pose: '+str(pose_in[0]))
+    center_from_fixed_display = pose_in[0]
+    return center_from_fixed_display
+            
+# set range variables - display coord
+min_x_side_L = -680
+max_x_side_L = -630
+min_y_side_L = 0
+max_y_side_L = 500
+
+min_x_side_R = 630
+max_x_side_R = 680
+min_y_side_R = 0
+max_y_side_R = 500
+
+min_x_center = -310
+max_x_center = 310
+min_y_center = 400
+max_y_center = 480
+
+min_z = -150
+max_z = 150
+#mid_z = -67.5
+
+# display 좌표계 기준 머리 위치
+head_pos = posx([0, 60, 600, 0, 0, 0])
+head_pos_base = coord_transform(head_pos,f_disp_coord, DR_BASE)
+
+# display 좌표계 기준 타겟 모니터 중심 위치
+rand_x_side_L = random.randrange(min_x_side_L, max_x_side_L)
+rand_y_side_L = random.randrange(min_y_side_L, max_y_side_L)
+rand_side_L = [rand_x_side_L, rand_y_side_L]
+
+rand_x_side_R = random.randrange(min_x_side_R, max_x_side_R)
+rand_y_side_R = random.randrange(min_y_side_R, max_y_side_R)
+rand_side_R = [rand_x_side_R, rand_y_side_R]
+
+rand_x_center = random.randrange(min_x_center, max_x_center)
+rand_y_center = random.randrange(min_y_center, max_y_center)
+rand_center = [rand_x_center, rand_y_center]
+
+rand_z = random.randrange(min_z, max_z)
+
+# 다음 target 위치 뽑기
+cointoss = ['side_R']
+rand_next = random.choice(cointoss)
+
+# 경유관절 포즈 점의
+way_pose_R = posj([0,30,90,270,90,-180]) 
+way_pose_L = posj([0,-30,-90,-270,-90,-180])
+way_pose_R2 = posj([0,30,30,270,90,-180]) 
+way_pose_L2 = posj([0,-30,-30,-270,-90,-180])
+
+
+current_pos, sol = get_current_posx(f_disp_coord)
+
+if rand_next == 'side_R':
+
+    pos = posx(rand_x_side_R,rand_y_side_R,rand_z,0,0,0)
+    pos_base = coord_transform(pos,f_disp_coord,DR_BASE)
+
+    if current_pos[0] < max_x_side_L:
+        movej(way_pose_R,v=25,a=25)
+        movel(pos,v=100, a=100)
+
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0]) 
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+#        tp_log('final position is '+ str(get_current_posx()))
+        get_center_from_fixed_display()
+        xz_align_R()
+
+    if min_x_side_R < current_pos[0]:
+        movej(way_pose_R,v=25,a=25)
+        movel(pos,v=100, a=100)
+
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0]) 
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_R()
+
+    if max_x_side_L < current_pos[0] < min_x_side_R:
+        movej(way_pose_R2,v=25, a=25)
+        movej(way_pose_R,v=25, a=25)
+        movel(pos,v=100, a=100)
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0])
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_R()
+
+if rand_next == 'side_L':
+
+    pos = posx(rand_x_side_L,rand_y_side_L,rand_z,0,0,0)
+    pos_base = coord_transform(pos,f_disp_coord,DR_BASE)
+
+    if current_pos[0] < max_x_side_L:
+        movej(way_pose_L,v=25,a=25)
+        movel(pos,v=100, a=100)
+
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0]) 
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_L()
+
+    if min_x_side_R < current_pos[0]:
+        movej(way_pose_L,v=25,a=25)
+        movel(pos,v=100, a=100)
+
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0]) 
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_L()
+
+    if max_x_side_L < current_pos[0] < min_x_side_R:
+        movej(way_pose_L2,v=25, a=25)
+        movej(way_pose_L,v=25, a=25)
+        movel(pos,v=100, a=100)
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0])
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_L()
+           
+        
+
+if rand_next == 'center':
+
+    pos = posx(rand_x_center,rand_y_center,rand_z,0,0,0)
+    pos_base = coord_transform(pos,f_disp_coord,DR_BASE)
+
+    if pos_base[0]<0:
+        
+        if current_pos[0] < max_x_side_L:
+            movej(way_pose_L, v=25, a=25)
+                
+        if min_x_side_R < current_pos[0]:
+            movej(way_pose_R, v=25, a=25)
+                
+                
+        movej(way_pose_L2,v=25, a=25)
+        movel(pos,v=100, a=100)
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0])
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_L()
+            
+    if pos_base[0]>0:
+        
+        if current_pos[0] < max_x_side_L:
+            movej(way_pose_L, v=25, a=25)
+                
+        if min_x_side_R < current_pos[0]:
+            movej(way_pose_R, v=25, a=25)
+                
+                
+        movej(way_pose_R2,v=25, a=25)
+        movel(pos,v=100, a=100)
+        current_pos_base = get_current_posx(DR_BASE) 
+
+        head_pos_tool = subtract_pose(head_pos_base,current_pos_base[0])
+        head_vect_tool = [head_pos_tool[0], head_pos_tool[1], head_pos_tool[2]]
+
+        parallel_axis(head_vect_tool,DR_AXIS_Z, DR_BASE)
+        get_center_from_fixed_display()
+#        tp_log('final position is '+ str(get_current_posx()))
+        xz_align_R()
+
+        
+tp_log('code finished')
