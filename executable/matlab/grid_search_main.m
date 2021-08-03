@@ -1,9 +1,9 @@
 clear; clc; close all;
 
 %% 데이터 경로 (다른 instruction case로 변경할 경우, ref, path에서 user_test_case*_gs 숫자만 변경)
-ref = readtable('../../dataset/user_test_case1_gs/ref_coord');
+ref = readtable('../../dataset/user_test_case2_gs/ref_coord');
 % ref = 레퍼런스 부모니터 중심점 위치가 담긴 파일의 경로
-path = "user_test_case1_gs\";
+path = "user_test_case2_gs\";
 % path = 인스트럭션 케이스(user_test_case1_gs: 가능한 정확하게, user_test_case2_gs: 가능한 빠르게, user_test_case3_gs; 가능한 빠르고 정확하게)
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 % ss = 피험자 번호
@@ -39,7 +39,7 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_final.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
         fprintf(trial_fileID,"trials,Distance_Error(mm),Direction_Error(deg),ref_display_position_x,ref_display_position_y,ref_display_position_z,second_display_position_x,second_display_position_y,second_display_position_z,elevation_coef,azimuth_coef,Cost\n");
         %% 위치 추정에 사용할 클릭 trial 개수 조정
-        for t = 40:2:40 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 2회 필요하므로 최소값은 4, 최대값은 100
+        for t = 4:2:100 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 2회 필요하므로 최소값은 4, 최대값은 100
         
         %% 초기 5번 calibration 클릭 제외한 데이터 추리기
         raw_data_true_trial = raw_data_true(1:t,:); %raw_data_true_trial = 1~t개 클릭 데이터 (calibration point 제외)        
@@ -226,13 +226,13 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         head_vect_second = head_direction_second(:,1:3) - head_origin_second(:,1:3); % 부모니터 클릭할 때 머리의 방향벡터
         
         base_angle = [];
-        for i = 1:length(head_vect_second)
+        for i = 1:size(head_vect_second,1)
             base_angle = vertcat(base_angle, atan2d(norm(cross(head_neutral(i,:),head_vect_second(i,:))), dot(head_neutral(i,:),head_vect_second(i,:))));
         end
         K = cross(head_neutral, head_vect_second); % K = distal point for rotation axis
         
         head_direction_second_calib = [];
-        for i = 1:length(head_vect_second)
+        for i = 1:size(head_vect_second,1)
             head_direction_second_calib = vertcat(head_direction_second_calib, rodrigues_rotn_formula(head_vect_second(i,:),head_pose_true(i,:),K(i,:),coef,base_angle(i,:)));
         end
         
@@ -244,11 +244,11 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         head_second_intersection = []; % 머리 방향벡터(고도각 보정 전) - 부모니터 교점
         head_second_intersection_calib = []; % 머리 방향벡터(고도각 보정 후) - 부모니터 교점
         
-        for i = 1:length(head_direction_first)
+        for i = 1:size(head_direction_first,1)
             head_first_intersection = vertcat(head_first_intersection, line_plane_intersection(head_origin_first(i,1:3), head_direction_first(i,1:3), plane_coef_first));
         end
         
-        for i = 1:length(head_direction_second)
+        for i = 1:size(head_direction_second,1)
             head_second_intersection = vertcat(head_second_intersection, line_plane_intersection(head_origin_second(i,1:3), head_direction_second(i,1:3), plane_coef_second));
             head_second_intersection_calib = vertcat(head_second_intersection_calib, line_plane_intersection(head_origin_second(i,1:3), head_direction_second_calib(i,1:3), plane_coef_second));
         end
@@ -258,7 +258,7 @@ for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
         head_second_intersection_mm_d2 = []; % 머리 방향벡터(고도각 보정 전) - 부모니터 교점 변환
         head_second_calib_intersection_mm_d2 = []; % 머리 방향벡터(고도각 보정 후) - 부모니터 교점 변환
         
-        for i=1:length(d2_target)
+        for i=1:size(d2_target,1)
             d2_target_mm_d2 = vertcat(d2_target_mm_d2, transpose(inv(htrans_plane_coord)*d2_target(i,:)'));
             head_second_intersection_mm_d2 = vertcat(head_second_intersection_mm_d2, transpose(inv(htrans_plane_coord)*[head_second_intersection(i,:), 1]'));
             head_second_calib_intersection_mm_d2 = vertcat(head_second_calib_intersection_mm_d2, transpose(inv(htrans_plane_coord)*[head_second_intersection_calib(i,:), 1]'));

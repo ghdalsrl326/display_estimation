@@ -83,13 +83,13 @@ head_neutral = -head_origin_second(:,1:3); % 현재 머리 위치에서 웹캠 �
 head_vect_second = head_direction_second(:,1:3) - head_origin_second(:,1:3); % 부모니터 클릭할 때 머리의 방향벡터
 
 base_angle = [];
-for i = 1:length(head_vect_second)
+for i = 1:size(head_vect_second,1)
     base_angle = vertcat(base_angle, atan2d(norm(cross(head_neutral(i,:),head_vect_second(i,:))), dot(head_neutral(i,:),head_vect_second(i,:))));
 end
 K = cross(head_neutral, head_vect_second); % K = distal point for rotation axis
 
 head_direction_second_calib = [];
-for i = 1:length(head_vect_second)
+for i = 1:size(head_vect_second,1)
     head_direction_second_calib = vertcat(head_direction_second_calib, rodrigues_rotn_formula(head_vect_second(i,:),head_pose_true(i,:),K(i,:),coef,base_angle(i,:)));
 end
 
