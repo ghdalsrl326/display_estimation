@@ -1,9 +1,9 @@
 clear; clc; close all;
 
 %% 데이터 경로 (다른 instruction case로 변경할 경우, ref, path에서 user_test_case*_gs 숫자만 변경)
-ref = readtable('../../dataset/user_test_case2_gs/ref_coord');
+ref = readtable('../../dataset/user_test_case1_gs/ref_coord');
 % ref = 레퍼런스 부모니터 중심점 위치가 담긴 파일의 경로
-path = "user_test_case2_gs\";
+path = "user_test_case1_gs\";
 % path = 인스트럭션 케이스(user_test_case1_gs: 가능한 정확하게, user_test_case2_gs: 가능한 빠르게, user_test_case3_gs; 가능한 빠르고 정확하게)
 ss = ["1\","2\","3\","4\","5\","6\","7\","8\","9\","10\"];
 % ss = 피험자 번호

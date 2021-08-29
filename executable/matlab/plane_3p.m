@@ -9,8 +9,8 @@ a = normal(1); b = normal(2); c = normal(3);
 d = p1(1)*normal(1) + p1(2)*normal(2) + p1(3)*normal(3);
 d = -d;
 
-x = -1000:10:1000; y = -1000:10:1000;
-[X,Y] = meshgrid(x,y);
-Z = (-d - (normal(1)*X) - (normal(2)*Y))/normal(3);
-mesh(X,Y,Z)
-alpha 0.5
+% x = -1000:10:1000; y = -1000:10:1000;
+% [X,Y] = meshgrid(x,y);
+% Z = (-d - (normal(1)*X) - (normal(2)*Y))/normal(3);
+% mesh(X,Y,Z)
+% alpha 0.5
