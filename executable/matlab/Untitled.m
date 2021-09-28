@@ -12,9 +12,11 @@ X = [X1(:) X2(:)];
 y = mvnpdf(X,mu,Sigma);
 y = reshape(y,length(x2),length(x1));
 
-[C,h] = contour(x1,x2,y,[0.0001 0.001 0.01 0.05 0.15 0.25 0.35]);
+[C,h] = contour(x1,x2,y,[0.0000001 0.000001 0.00001 0.0001 0.001 0.01 0.05 0.15 0.25 0.35, 0.5, 0.56]);
+colormap turbo
+% colormap(hot(6))
 w = h.LineWidth;
-h.LineWidth = 2;
+h.LineWidth = 2.5;
 xlabel('x')
 ylabel('y')
 axis square

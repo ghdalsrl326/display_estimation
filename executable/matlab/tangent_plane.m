@@ -16,10 +16,10 @@ Rphi0 = double(subs(Rphi,{phi,theta},{phi_input,theta_input}));      % first tan
 Rtheta0 = double(subs(Rtheta,{phi,theta},{phi_input,theta_input}));  % second tangent vector
 N = double(cross(Rphi0,Rtheta0));                        % normal vector is cross product of tangent vectors
 
-
-ezsurfpar(X,Y,Z,-pi,pi,-pi/2,pi/2,theta,phi); hold on % plot surface for theta(azimuth) in [-pi,pi], phi(elevation) in [-pi/2,pi/2]
-
-patch([1000 -1000 -1000 1000], [1000 1000 -1000 -1000], [0 0 0 0], [1000 1000 -1000 -1000]) % xy plane
-alpha 0.2;
-plane(R0,N,1000,1000);                                     % plot tangent plane
-hold off; view(70,20);
+% 
+% ezsurfpar(X,Y,Z,-pi,pi,-pi/2,pi/2,theta,phi); hold on % plot surface for theta(azimuth) in [-pi,pi], phi(elevation) in [-pi/2,pi/2]
+% 
+% patch([1000 -1000 -1000 1000], [1000 1000 -1000 -1000], [0 0 0 0], [1000 1000 -1000 -1000]) % xy plane
+% alpha 0.2;
+% plane(R0,N,1000,1000);                                     % plot tangent plane
+% hold off; view(70,20);

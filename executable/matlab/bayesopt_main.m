@@ -11,8 +11,8 @@ sub_file = ["data_robot_1.csv","data_robot_2.csv","data_robot_3.csv","data_robot
 % sub_file = 피험자 데이터 로그 파일 (data_robot_1: 부모니터가 사용자 기준 우측에 위치한 경우, data_robot_2: 중앙, data_robot_3: 좌측, data_robot_4: 좌측, data_robot_5: 우측)
 
 %% 분석 시작
-for s = 8:8 % 1번 피험자 ~ 10번 피험자 데이터
-    for n = 4:5 % 1번 부모니터 위치 ~ 5번 부모니터 레퍼런스 위치 (우축, 중앙, 좌측, 좌측, 우측)
+for s = 1:10 % 1번 피험자 ~ 10번 피험자 데이터
+    for n = 1:5 % 1번 부모니터 위치 ~ 5번 부모니터 레퍼런스 위치 (우축, 중앙, 좌측, 좌측, 우측)
         ref_new = ref(s*5 - (5-n),:); % ref = 모든 피험자의 레퍼런스 부모니터 위치가 스택 -> ref_new = s번 피험자의 n번 부모니터 레퍼런스 위치
         % 주모니터 좌표계(원점: 주모니터 중심, x축: 주모니터 우측+, y축: 주모니터 상단+, z축: 사용자 방향+)
         ref_display_position = table2array(ref_new(:,:)); % 주모니터 좌표계 기준 부모니터 중심 위치
@@ -35,12 +35,13 @@ for s = 8:8 % 1번 피험자 ~ 10번 피험자 데이터
         raw_data_calib_points = raw_data(raw_data.Success==1,:); % 105회 클릭 중 최초 5회 calibration point 식별. (calibration은 클릭 성공만 카운트, 나머지 100회는 성공/실패 모두 카운트)
         last_calib_idx = find(raw_data.Success==1 & raw_data.target_x==960 & raw_data.target_y==540); %  마지막 calibration point 식별
         raw_data_true = raw_data(last_calib_idx+1:end,:); % calibration point 제외한 데이터 추출 -> 얘네만 추정에 활용
+        raw_data_true = raw_data_true(21:100,:); % learning effect 제거
         
-        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_trials_bayes.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
+        trial_fileID = fopen(strcat('..\..\dataset\',path,ss(s),sub_file(n),"_learningeffect.txt"),'w'); % 포함시키는 트라이얼의 갯수에 따라 정확도 정밀도가 어떻게 변하는지 확인용 파일
         fprintf(trial_fileID,"trials,ref_x,ref_y,ref_z,best_x,best_y,best_z,best_w,best_s,best_distance_error,best_direction_error,t1_x,t1_y,t1_z,t1_w,t1_s,t1_distance_error,t1_direction_error,t2_x,t2_y,t2_z,t2_w,t2_s,t2_distance_error,t2_direction_error,t3_x,t3_y,t3_z,t3_w,t3_s,t3_distance_error,t3_direction_error,t4_x,t4_y,t4_z,t4_w,t4_s,t4_distance_error,t4_direction_error\n");
         %% 위치 추정에 사용할 클릭 trial 개수 조정
         
-        for t = 2:2:100 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 1회 필요하므로 최소값은 2, 최대값은 100
+        for t = 80:2:80 % 40 trial로 고정하려면 40:2:40 으로 대체, 각 모니터 최소 1회 필요하므로 최소값은 2, 최대값은 100
             tic
            %% 초기 5번 calibration 클릭 제외한 데이터 추리기
             raw_data_true_trial = raw_data_true(1:t,:); %raw_data_true_trial = 1~t개 클릭 데이터 (calibration point 제외)
@@ -59,7 +60,7 @@ for s = 8:8 % 1번 피험자 ~ 10번 피험자 데이터
                 b = [dd];
                 yvar = optimizableVariable('yvar',[-800,round(-365/2)],'Type','integer');
                 zvar = optimizableVariable('zvar',[-300,300],'Type','integer');
-                wvar = optimizableVariable('wvar',[0.9999999,1.0000001]);
+                wvar = optimizableVariable('wvar',[1,8]);
                 svar = optimizableVariable('svar',[0,2]);
                 vars = [xvar, yvar, zvar, wvar, svar];
                                                
@@ -70,7 +71,7 @@ for s = 8:8 % 1번 피험자 ~ 10번 피험자 데이터
                 b = [dd];
                 yvar = optimizableVariable('yvar',[-800,round(-365/2)],'Type','integer');
                 zvar = optimizableVariable('zvar',[-300,300],'Type','integer');
-                wvar = optimizableVariable('wvar',[0.9999999,1.0000001]);
+                wvar = optimizableVariable('wvar',[1,8]);
                 svar = optimizableVariable('svar',[0,2]);
                 vars = [xvar, yvar, zvar, wvar, svar];
             end

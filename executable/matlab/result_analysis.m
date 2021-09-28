@@ -302,32 +302,71 @@ inst_1234_RLC_average_distance_error = mean(inst_1234_RLC,2);
 inst_1234_RLC_std_distance_error = std(inst_1234_RLC,0,2);
 
 %% ACC and PRC for all conditions (𝑀=90, 3 Locations×3 Instructions×10 participants)
-figure;
+f1 = figure;
 hold on;
 grid on;
-xlabel('Click Trials');
-ylabel('ACC');
 ylim([0,350]);
 x = [2:2:100];
-yacc1 = plot(x, inst_1_RLC_average_distance_error,'r','LineWidth',2);
-yacc2 = plot(x, inst_2_RLC_average_distance_error,'g','LineWidth',2);
-yacc3 = plot(x, inst_3_RLC_average_distance_error,'b','LineWidth',2);
-yacc4 = plot(x, inst_123_RLC_average_distance_error,'k','LineWidth',2);
-yacc5 = plot(x, inst_1234_RLC_average_distance_error,'c','LineWidth',2);
-hold off;
-legend({'Instruction 1 - Mean','Instruction 2 - Mean','Instruction 3 - Mean','Instruction 1,2,3 - Mean', 'Instruction 1,2,3,4 - Mean'},'Location','best','NumColumns',2)
+yacc1 = plot(x, inst_123_RLC_average_distance_error,'k','LineWidth',2,'Marker','o');
+yacc2 = plot(x, inst_1_RLC_average_distance_error,'LineWidth',2,'Marker','^');
+yacc3 = plot(x, inst_2_RLC_average_distance_error,'LineWidth',2,'Marker','+');
+yacc4 = plot(x, inst_3_RLC_average_distance_error,'LineWidth',2,'Marker','*');
+% yacc5 = plot(x, inst_1234_RLC_average_distance_error,'c','LineWidth',2);
+yacc5 = plot(x, inst_123_R_average_distance_error,'LineWidth',2,'Marker','x');
+yacc6 = plot(x, inst_123_L_average_distance_error,'LineWidth',2,'Marker','s');
+yacc7 = plot(x, inst_123_C_average_distance_error,'LineWidth',2,'Marker','d');
+yacc = [yacc1, yacc2, yacc3, yacc4, yacc5, yacc6, yacc7];
 
-figure;
-hold on;
-grid on;
-xlabel('Click Trials');
-ylabel('PRC');
-ylim([0,150]);
-yprc1 = plot(x, inst_1_RLC_std_distance_error,'r','LineWidth',2);
-yprc2 = plot(x, inst_2_RLC_std_distance_error,'g','LineWidth',2);
-yprc3 = plot(x, inst_3_RLC_std_distance_error,'b','LineWidth',2);
-yprc4 = plot(x, inst_123_RLC_std_distance_error,'k','LineWidth',2);
-yprc5 = plot(x, inst_1234_RLC_std_distance_error,'c','LineWidth',2);
-
+yprc1 = plot(x, inst_123_RLC_std_distance_error,'-.k','LineWidth',2,'Marker','o');
+yprc2 = plot(x, inst_1_RLC_std_distance_error,'-.','LineWidth',2,'Marker','^');  
+yprc3 = plot(x, inst_2_RLC_std_distance_error,'-.','LineWidth',2,'Marker','+');
+yprc4 = plot(x, inst_3_RLC_std_distance_error,'-.','LineWidth',2,'Marker','*');
+% yprc5 = plot(x, inst_1234_RLC_std_distance_error,'c','LineWidth',2);
+yprc5 = plot(x, inst_123_R_std_distance_error,'-.','LineWidth',2,'Marker','x');
+yprc6 = plot(x, inst_123_L_std_distance_error,'-.','LineWidth',2,'Marker','s');
+yprc7 = plot(x, inst_123_C_std_distance_error,'-.','LineWidth',2,'Marker','d');
+yprc = [yprc1, yprc2, yprc3, yprc4, yprc5, yprc6, yprc7];
 hold off;
-legend({'Instruction 1 - Mean','Instruction 2 - Mean','Instruction 3 - Mean','Instruction 1,2,3 - Mean','Instruction 1,2,3,4 - Mean'},'Location','southeast','NumColumns',2)
+
+leg1=legend(yacc, 'Overall', 'Instruction - 1', 'Instruction - 2', 'Instruction - 3', 'Location - Right', 'Location - Left', 'Location - Center','Location','northeastoutside');
+title(leg1,'{\itACC}');
+set(leg1,'FontSize',15);
+ah1=axes('position',get(gca,'position'),'visible','off');
+leg2=legend(ah1,yprc,'Overall', 'Instruction - 1', 'Instruction - 2', 'Instruction - 3', 'Location - Right', 'Location - Left', 'Location - Center','Location','eastoutside');
+title(leg2,'{\itPRC}');
+set(leg2,'FontSize',15);
+
+%% ACC and PRC for all conditions (𝑀=90, 3 Locations×3 Instructions×10 participants)
+% f2 = figure;
+% hold on;
+% grid on;
+% ylim([0,350]);
+% x = [2:2:100];
+% yyacc1 = plot(x, inst_123_RLC_average_distance_error,'k','LineWidth',2,'Marker','o');
+% yyacc2 = plot(x, inst_1_RLC_average_distance_error,'LineWidth',2,'Marker','^');
+% yyacc3 = plot(x, inst_2_RLC_average_distance_error,'LineWidth',2,'Marker','+');
+% yyacc4 = plot(x, inst_3_RLC_average_distance_error,'LineWidth',2,'Marker','*');
+% % yacc5 = plot(x, inst_1234_RLC_average_distance_error,'c','LineWidth',2);
+% yyacc5 = plot(x, inst_123_R_average_distance_error,'LineWidth',2,'Marker','x');
+% yyacc6 = plot(x, inst_123_L_average_distance_error,'LineWidth',2,'Marker','s');
+% yyacc7 = plot(x, inst_123_C_average_distance_error,'LineWidth',2,'Marker','d');
+% yyacc = [yacc1, yacc2, yacc3, yacc4, yacc5, yacc6, yacc7];
+% 
+% yyprc1 = plot(x, inst_123_RLC_std_distance_error,'-.k','LineWidth',2,'Marker','o');
+% yyprc2 = plot(x, inst_1_RLC_std_distance_error,'-.','LineWidth',2,'Marker','^');  
+% yyprc3 = plot(x, inst_2_RLC_std_distance_error,'-.','LineWidth',2,'Marker','+');
+% yyprc4 = plot(x, inst_3_RLC_std_distance_error,'-.','LineWidth',2,'Marker','*');
+% % yprc5 = plot(x, inst_1234_RLC_std_distance_error,'c','LineWidth',2);
+% yyprc5 = plot(x, inst_123_R_std_distance_error,'-.','LineWidth',2,'Marker','x');
+% yyprc6 = plot(x, inst_123_L_std_distance_error,'-.','LineWidth',2,'Marker','s');
+% yyprc7 = plot(x, inst_123_C_std_distance_error,'-.','LineWidth',2,'Marker','d');
+% yyprc = [yprc1, yprc2, yprc3, yprc4, yprc5, yprc6, yprc7];
+% hold off;
+% 
+% leg1=legend(yacc, 'Overall', 'Instruction - 1', 'Instruction - 2', 'Instruction - 3', 'Location - Right', 'Location - Left', 'Location - Center','Location','northeastoutside');
+% title(leg1,'{\itACC}');
+% set(leg1,'FontSize',15);
+% ah1=axes('position',get(gca,'position'),'visible','off');
+% leg2=legend(ah1,yprc,'Overall', 'Instruction - 1', 'Instruction - 2', 'Instruction - 3', 'Location - Right', 'Location - Left', 'Location - Center','Location','eastoutside');
+% title(leg2,'{\itPRC}');
+% set(leg2,'FontSize',15);
